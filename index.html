@@ -5,48 +5,83 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Machine Profit Tracker</title>
 
-<link rel="manifest" href="manifest.json">
-
 <style>
 
 body{
-font-family:Arial;
-background:#f4f6fb;
-padding:15px;
-max-width:900px;
+font-family:"Segoe UI",Arial;
+background:#eef2f7;
+padding:20px;
+max-width:1000px;
 margin:auto;
 }
 
-h1{
-text-align:center;
-}
+h1{text-align:center;margin-bottom:20px;}
 
 .card{
 background:white;
-padding:15px;
+padding:25px;
 margin-bottom:20px;
-border-radius:10px;
-box-shadow:0 3px 10px rgba(0,0,0,0.1);
+border-radius:12px;
+box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+h3{
+margin-top:25px;
+border-bottom:2px solid #f1f1f1;
+padding-bottom:6px;
+}
+
+.form-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:15px;
+margin-top:15px;
+}
+
+.field{
+display:flex;
+flex-direction:column;
+}
+
+label{
+font-size:13px;
+margin-bottom:4px;
+color:#555;
 }
 
 input{
-padding:7px;
-margin:4px;
-width:120px;
+padding:10px;
+border:1px solid #ddd;
+border-radius:6px;
+font-size:14px;
+}
+
+input:focus{
+outline:none;
+border-color:#27ae60;
+}
+
+.btn-group{
+margin-top:20px;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
 }
 
 button{
-padding:10px 15px;
+padding:10px 16px;
 border:none;
 background:#27ae60;
 color:white;
+border-radius:6px;
 cursor:pointer;
-border-radius:5px;
+font-size:14px;
 }
 
-.delete{
-background:#e74c3c;
-}
+button:hover{opacity:.9;}
+
+.delete{background:#e74c3c;}
+.edit{background:#3498db;}
 
 table{
 width:100%;
@@ -54,86 +89,159 @@ border-collapse:collapse;
 margin-top:15px;
 }
 
+th{
+background:#f8f9fb;
+}
+
 th,td{
-border:1px solid #ddd;
-padding:8px;
+border:1px solid #eee;
+padding:10px;
 text-align:center;
 }
 
-</style>
+.table-wrap{
+overflow-x:auto;
+}
 
+.summary{
+font-size:16px;
+line-height:28px;
+}
+
+</style>
 </head>
+
 
 <body>
 
 <h1>Machine Profit Tracker</h1>
 
+
 <div class="card">
 
-Date
-<input type="date" id="date">
+<h3>Rates (Editable)</h3>
 
-<h3>Kobelco</h3>
+<div class="form-grid">
 
-Hours
-<input type="number" id="hours">
+<div class="field">
+<label>Kobelco ₹ / Hour</label>
+<input id="kRate" type="number">
+</div>
 
-Diesel (L)
-<input type="number" id="diesel1">
+<div class="field">
+<label>Compressor ₹ / Feet</label>
+<input id="cRate" type="number">
+</div>
 
-Operator Pay
-<input type="number" id="operator">
+<div class="field">
+<label>Diesel ₹ / Litre</label>
+<input id="dieselRate" type="number">
+</div>
 
-Spare
-<input type="number" id="spare1">
+</div>
 
-Misc
-<input type="number" id="misc1">
-
-
-<h3>Compressor</h3>
-
-Feet
-<input type="number" id="feet">
-
-Diesel (L)
-<input type="number" id="diesel2">
-
-Driller Pay
-<input type="number" id="driller">
-
-Spare
-<input type="number" id="spare2">
-
-Misc
-<input type="number" id="misc2">
-
-<br><br>
-
-<button onclick="addRecord()">Add Entry</button>
-<button onclick="clearData()">Reset</button>
+<button onclick="saveRates()">Save Rates</button>
 
 </div>
 
 
+
 <div class="card">
+
+<label>Date</label>
+<input type="date" id="date">
+
+<h3>Kobelco</h3>
+
+<div class="form-grid">
+
+<div class="field">
+<label>Hours</label>
+<input type="number" id="hours">
+</div>
+
+<div class="field">
+<label>Diesel (L)</label>
+<input type="number" id="diesel1">
+</div>
+
+<div class="field">
+<label>Operator Pay</label>
+<input type="number" id="operator">
+</div>
+
+<div class="field">
+<label>Spare</label>
+<input type="number" id="spare1">
+</div>
+
+<div class="field">
+<label>Misc</label>
+<input type="number" id="misc1">
+</div>
+
+</div>
+
+
+<h3>Compressor</h3>
+
+<div class="form-grid">
+
+<div class="field">
+<label>Holes (1 hole = 6 feet)</label>
+<input type="number" id="holes">
+</div>
+
+<div class="field">
+<label>Diesel (L)</label>
+<input type="number" id="diesel2">
+</div>
+
+<div class="field">
+<label>Driller Pay</label>
+<input type="number" id="driller">
+</div>
+
+<div class="field">
+<label>Spare</label>
+<input type="number" id="spare2">
+</div>
+
+<div class="field">
+<label>Misc</label>
+<input type="number" id="misc2">
+</div>
+
+</div>
+
+<div class="btn-group">
+<button onclick="addRecord()">Add Entry</button>
+<button onclick="clearData()">Reset All Data</button>
+</div>
+
+</div>
+
+
+
+<div class="card summary">
 
 <h2>Summary</h2>
 
-Kobelco Revenue : ₹ <span id="krev">0</span><br><br>
-
-Compressor Revenue : ₹ <span id="crev">0</span><br><br>
-
-Total Expenses : ₹ <span id="exp">0</span><br><br>
+Kobelco Revenue : ₹ <span id="krev">0</span><br>
+Compressor Revenue : ₹ <span id="crev">0</span><br>
+Total Expenses : ₹ <span id="exp">0</span><br>
 
 <b>Total Profit : ₹ <span id="profit">0</span></b>
 
 </div>
 
 
+
 <div class="card">
 
 <h2>Records</h2>
+
+<div class="table-wrap">
 
 <table id="table">
 
@@ -141,6 +249,7 @@ Total Expenses : ₹ <span id="exp">0</span><br><br>
 <th>Date</th>
 <th>K Profit</th>
 <th>C Profit</th>
+<th>Edit</th>
 <th>Delete</th>
 </tr>
 
@@ -148,23 +257,45 @@ Total Expenses : ₹ <span id="exp">0</span><br><br>
 
 </div>
 
+</div>
+
 
 
 <script>
 
-if('serviceWorker' in navigator){
-navigator.serviceWorker.register('sw.js');
+let rates = JSON.parse(localStorage.getItem("rates")) || {
+kRate:2200,
+cRate:24,
+dieselRate:92
+};
+
+kRate.value = rates.kRate;
+cRate.value = rates.cRate;
+dieselRate.value = rates.dieselRate;
+
+
+function saveRates(){
+
+rates.kRate = Number(kRate.value);
+rates.cRate = Number(cRate.value);
+rates.dieselRate = Number(dieselRate.value);
+
+localStorage.setItem("rates",JSON.stringify(rates));
+
+render();
+
 }
 
-const K_RATE=2200;
-const COMP_RATE=24;
-const DIESEL_RATE=92;
 
-let data=JSON.parse(localStorage.getItem("machineData"))||[];
+let data = JSON.parse(localStorage.getItem("machineData")) || [];
+
 
 function addRecord(){
 
-let r={
+let holesVal = Number(holes.value) || 0;
+let feet = holesVal * 6;
+
+let r = {
 
 date:date.value,
 
@@ -174,7 +305,9 @@ operator:Number(operator.value)||0,
 spare1:Number(spare1.value)||0,
 misc1:Number(misc1.value)||0,
 
-feet:Number(feet.value)||0,
+holes:holesVal,
+feet:feet,
+
 diesel2:Number(diesel2.value)||0,
 driller:Number(driller.value)||0,
 spare2:Number(spare2.value)||0,
@@ -194,9 +327,15 @@ render();
 
 function clearData(){
 
+if(confirm("Delete all data?")){
+
 localStorage.removeItem("machineData");
+
 data=[];
+
 render();
+
+}
 
 }
 
@@ -214,6 +353,31 @@ render();
 
 
 
+function editRow(i){
+
+let r=data[i];
+
+date.value=r.date;
+
+hours.value=r.hours;
+diesel1.value=r.diesel1;
+operator.value=r.operator;
+spare1.value=r.spare1;
+misc1.value=r.misc1;
+
+holes.value=r.holes;
+
+diesel2.value=r.diesel2;
+driller.value=r.driller;
+spare2.value=r.spare2;
+misc2.value=r.misc2;
+
+deleteRow(i);
+
+}
+
+
+
 function render(){
 
 let table=document.getElementById("table");
@@ -223,6 +387,7 @@ table.innerHTML=`
 <th>Date</th>
 <th>K Profit</th>
 <th>C Profit</th>
+<th>Edit</th>
 <th>Delete</th>
 </tr>
 `;
@@ -235,14 +400,14 @@ let profit=0;
 
 data.forEach((r,i)=>{
 
-let kRev=r.hours*K_RATE;
-let kDiesel=r.diesel1*DIESEL_RATE;
+let kRev=r.hours*rates.kRate;
+let kDiesel=r.diesel1*rates.dieselRate;
 
 let kProfit=kRev-kDiesel-r.operator-r.spare1-r.misc1;
 
 
-let cRev=r.feet*COMP_RATE;
-let cDiesel=r.diesel2*DIESEL_RATE;
+let cRev=r.feet*rates.cRate;
+let cDiesel=r.diesel2*rates.dieselRate;
 
 let cProfit=cRev-cDiesel-r.driller-r.spare2-r.misc2;
 
@@ -266,8 +431,9 @@ profit+=kProfit+cProfit;
 table.innerHTML+=`
 <tr>
 <td>${r.date}</td>
-<td>${kProfit}</td>
-<td>${cProfit}</td>
+<td>₹${kProfit}</td>
+<td>₹${cProfit}</td>
+<td><button class="edit" onclick="editRow(${i})">Edit</button></td>
 <td><button class="delete" onclick="deleteRow(${i})">X</button></td>
 </tr>
 `;
