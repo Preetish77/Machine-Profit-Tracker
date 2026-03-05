@@ -1,0 +1,291 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Machine Profit Tracker</title>
+
+<link rel="manifest" href="manifest.json">
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6fb;
+padding:15px;
+max-width:900px;
+margin:auto;
+}
+
+h1{
+text-align:center;
+}
+
+.card{
+background:white;
+padding:15px;
+margin-bottom:20px;
+border-radius:10px;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+input{
+padding:7px;
+margin:4px;
+width:120px;
+}
+
+button{
+padding:10px 15px;
+border:none;
+background:#27ae60;
+color:white;
+cursor:pointer;
+border-radius:5px;
+}
+
+.delete{
+background:#e74c3c;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:15px;
+}
+
+th,td{
+border:1px solid #ddd;
+padding:8px;
+text-align:center;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Machine Profit Tracker</h1>
+
+<div class="card">
+
+Date
+<input type="date" id="date">
+
+<h3>Kobelco</h3>
+
+Hours
+<input type="number" id="hours">
+
+Diesel (L)
+<input type="number" id="diesel1">
+
+Operator Pay
+<input type="number" id="operator">
+
+Spare
+<input type="number" id="spare1">
+
+Misc
+<input type="number" id="misc1">
+
+
+<h3>Compressor</h3>
+
+Feet
+<input type="number" id="feet">
+
+Diesel (L)
+<input type="number" id="diesel2">
+
+Driller Pay
+<input type="number" id="driller">
+
+Spare
+<input type="number" id="spare2">
+
+Misc
+<input type="number" id="misc2">
+
+<br><br>
+
+<button onclick="addRecord()">Add Entry</button>
+<button onclick="clearData()">Reset</button>
+
+</div>
+
+
+<div class="card">
+
+<h2>Summary</h2>
+
+Kobelco Revenue : ₹ <span id="krev">0</span><br><br>
+
+Compressor Revenue : ₹ <span id="crev">0</span><br><br>
+
+Total Expenses : ₹ <span id="exp">0</span><br><br>
+
+<b>Total Profit : ₹ <span id="profit">0</span></b>
+
+</div>
+
+
+<div class="card">
+
+<h2>Records</h2>
+
+<table id="table">
+
+<tr>
+<th>Date</th>
+<th>K Profit</th>
+<th>C Profit</th>
+<th>Delete</th>
+</tr>
+
+</table>
+
+</div>
+
+
+
+<script>
+
+if('serviceWorker' in navigator){
+navigator.serviceWorker.register('sw.js');
+}
+
+const K_RATE=2200;
+const COMP_RATE=24;
+const DIESEL_RATE=92;
+
+let data=JSON.parse(localStorage.getItem("machineData"))||[];
+
+function addRecord(){
+
+let r={
+
+date:date.value,
+
+hours:Number(hours.value)||0,
+diesel1:Number(diesel1.value)||0,
+operator:Number(operator.value)||0,
+spare1:Number(spare1.value)||0,
+misc1:Number(misc1.value)||0,
+
+feet:Number(feet.value)||0,
+diesel2:Number(diesel2.value)||0,
+driller:Number(driller.value)||0,
+spare2:Number(spare2.value)||0,
+misc2:Number(misc2.value)||0
+
+};
+
+data.push(r);
+
+localStorage.setItem("machineData",JSON.stringify(data));
+
+render();
+
+}
+
+
+
+function clearData(){
+
+localStorage.removeItem("machineData");
+data=[];
+render();
+
+}
+
+
+
+function deleteRow(i){
+
+data.splice(i,1);
+
+localStorage.setItem("machineData",JSON.stringify(data));
+
+render();
+
+}
+
+
+
+function render(){
+
+let table=document.getElementById("table");
+
+table.innerHTML=`
+<tr>
+<th>Date</th>
+<th>K Profit</th>
+<th>C Profit</th>
+<th>Delete</th>
+</tr>
+`;
+
+let krev=0;
+let crev=0;
+let expenses=0;
+let profit=0;
+
+
+data.forEach((r,i)=>{
+
+let kRev=r.hours*K_RATE;
+let kDiesel=r.diesel1*DIESEL_RATE;
+
+let kProfit=kRev-kDiesel-r.operator-r.spare1-r.misc1;
+
+
+let cRev=r.feet*COMP_RATE;
+let cDiesel=r.diesel2*DIESEL_RATE;
+
+let cProfit=cRev-cDiesel-r.driller-r.spare2-r.misc2;
+
+
+krev+=kRev;
+crev+=cRev;
+
+expenses+=
+kDiesel+
+cDiesel+
+r.operator+
+r.driller+
+r.spare1+
+r.spare2+
+r.misc1+
+r.misc2;
+
+profit+=kProfit+cProfit;
+
+
+table.innerHTML+=`
+<tr>
+<td>${r.date}</td>
+<td>${kProfit}</td>
+<td>${cProfit}</td>
+<td><button class="delete" onclick="deleteRow(${i})">X</button></td>
+</tr>
+`;
+
+});
+
+
+document.getElementById("krev").innerText=krev;
+document.getElementById("crev").innerText=crev;
+document.getElementById("exp").innerText=expenses;
+document.getElementById("profit").innerText=profit;
+
+}
+
+render();
+
+</script>
+
+</body>
+</html>
