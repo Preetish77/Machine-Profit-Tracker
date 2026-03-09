@@ -15,10 +15,9 @@ background:#f4f6f9;
 header{
 background:#111;
 color:white;
-padding:15px;
+padding:14px;
 text-align:center;
-font-size:20px;
-font-weight:bold;
+font-size:18px;
 }
 
 .tabs{
@@ -27,10 +26,10 @@ display:flex;
 
 .tabs button{
 flex:1;
-padding:14px;
+padding:12px;
 border:none;
 background:#ddd;
-font-size:16px;
+font-size:15px;
 }
 
 .tabs button.active{
@@ -39,98 +38,112 @@ color:white;
 }
 
 .container{
-padding:15px;
-}
-
-.summary{
-display:flex;
-gap:10px;
-margin-bottom:10px;
-}
-
-.summary div{
-flex:1;
-background:white;
-padding:10px;
-border-radius:8px;
-text-align:center;
-box-shadow:0 2px 6px rgba(0,0,0,0.1);
-}
-
-.summary span{
-display:block;
-font-size:12px;
-color:#777;
-}
-
-.summary b{
-font-size:18px;
+padding:12px;
 }
 
 .card{
 background:white;
 padding:12px;
 border-radius:8px;
-box-shadow:0 2px 6px rgba(0,0,0,0.1);
 margin-bottom:12px;
+box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+.summary{
+display:flex;
+gap:8px;
+margin-bottom:10px;
+}
+
+.summary div{
+flex:1;
+background:white;
+padding:8px;
+border-radius:6px;
+text-align:center;
+box-shadow:0 2px 4px rgba(0,0,0,0.1);
+}
+
+.summary span{
+font-size:12px;
+color:#777;
+display:block;
+}
+
+.summary b{
+font-size:17px;
 }
 
 input{
 width:100%;
-padding:10px;
+padding:9px;
 margin:6px 0;
 border:1px solid #ccc;
 border-radius:6px;
-font-size:14px;
 }
 
 button{
 width:100%;
-padding:12px;
+padding:10px;
 background:#111;
 color:white;
 border:none;
 border-radius:6px;
-margin-top:8px;
-font-size:15px;
-}
-
-.tableWrap{
-overflow-x:auto;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
-font-size:14px;
-min-width:550px;
+font-size:13px;
 }
 
 th{
 text-align:left;
 background:#fafafa;
-padding:10px;
+padding:8px;
 border-bottom:2px solid #eee;
 }
 
 td{
-padding:10px;
+padding:8px;
 border-bottom:1px solid #eee;
-vertical-align:top;
 }
 
-td.note{
-max-width:180px;
-word-wrap:break-word;
+.actions{
+display:flex;
+gap:5px;
 }
 
 .edit{
 background:#007bff;
-padding:6px 10px;
+padding:6px 8px;
 border:none;
 color:white;
-border-radius:5px;
-font-size:13px;
+border-radius:4px;
+font-size:12px;
+}
+
+.delete{
+background:#dc3545;
+padding:6px 8px;
+border:none;
+color:white;
+border-radius:4px;
+font-size:12px;
+}
+
+.filterRow{
+display:flex;
+gap:6px;
+}
+
+.filterRow input{
+flex:1;
+}
+
+.filterRow button{
+width:auto;
+padding:9px 12px;
 }
 
 </style>
@@ -147,6 +160,16 @@ font-size:13px;
 
 <div class="container">
 
+<div class="card">
+
+<div class="filterRow">
+<input type="date" id="fromDate">
+<input type="date" id="toDate">
+<button onclick="applyFilter()">Filter</button>
+</div>
+
+</div>
+
 <div class="summary">
 <div><span id="l1">Hours</span><b id="s1">0</b></div>
 <div><span id="l2">Diesel</span><b id="s2">0</b></div>
@@ -155,13 +178,18 @@ font-size:13px;
 
 <div id="form"></div>
 
-<div class="card tableWrap">
+<div class="card">
+
 <table>
+
 <thead>
 <tr id="thead"></tr>
 </thead>
+
 <tbody id="tbody"></tbody>
+
 </table>
+
 </div>
 
 </div>
@@ -173,11 +201,23 @@ const API="https://script.google.com/macros/s/AKfycbzipgS_jFRAlTHXNPhQxI8_keZy4y
 let machine="kobelco"
 let data=[]
 let editRow=null
+let fromDate=null
+let toDate=null
 
 function formatDate(d){
+
 if(!d) return ""
+
 let date=new Date(d)
-return date.toISOString().split("T")[0]
+
+let dayNames=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
+
+let day=dayNames[date.getDay()]
+
+let formatted=date.toISOString().split("T")[0]
+
+return formatted+" ("+day+")"
+
 }
 
 function switchMachine(m){
@@ -187,10 +227,21 @@ machine=m
 document.getElementById("kTab").classList.remove("active")
 document.getElementById("cTab").classList.remove("active")
 
-if(m=="kobelco") document.getElementById("kTab").classList.add("active")
-else document.getElementById("cTab").classList.add("active")
+if(m=="kobelco")
+document.getElementById("kTab").classList.add("active")
+else
+document.getElementById("cTab").classList.add("active")
 
 renderForm()
+renderTable()
+
+}
+
+function applyFilter(){
+
+fromDate=document.getElementById("fromDate").value
+toDate=document.getElementById("toDate").value
+
 renderTable()
 
 }
@@ -212,7 +263,7 @@ html=`
 <input type="number" id="hours" placeholder="Hours">
 <input type="number" id="diesel" placeholder="Diesel">
 <input type="number" id="expense" placeholder="Expense">
-<input type="text" id="notes" placeholder="Expense note (repair / spare part etc)">
+<input type="text" id="notes" placeholder="Expense note">
 
 <button onclick="save()">Add Entry</button>
 
@@ -232,7 +283,7 @@ html=`
 <input type="number" id="holes" placeholder="Holes">
 <input type="number" id="diesel" placeholder="Diesel">
 <input type="number" id="expense" placeholder="Expense">
-<input type="text" id="notes" placeholder="Expense note (repair / spare part etc)">
+<input type="text" id="notes" placeholder="Expense note">
 
 <button onclick="save()">Add Entry</button>
 
@@ -277,7 +328,7 @@ setTimeout(loadData,600)
 function loadData(){
 
 fetch(API)
-.then(res=>res.json())
+.then(r=>r.json())
 .then(json=>{
 data=json
 renderTable()
@@ -287,7 +338,18 @@ renderTable()
 
 function renderTable(){
 
-let rows=data.filter(x=>x.machine==machine)
+let rows=data.filter(x=>{
+
+if(x.machine!=machine) return false
+
+let d=new Date(x.date)
+
+if(fromDate && d<new Date(fromDate)) return false
+if(toDate && d>new Date(toDate)) return false
+
+return true
+
+})
 
 let html=""
 
@@ -302,19 +364,29 @@ rows.forEach(r=>{
 
 let date=formatDate(r.date)
 
-if(machine=="kobelco") t1+=Number(r.hours||0)
-else t1+=Number(r.holes||0)
+if(machine=="kobelco")
+t1+=Number(r.hours||0)
+else
+t1+=Number(r.holes||0)
 
 t2+=Number(r.diesel||0)
 t3+=Number(r.expense||0)
 
 html+=`<tr>
+
 <td>${date}</td>
 <td>${machine=="kobelco"?r.hours||"":r.holes||""}</td>
 <td>${r.diesel||""}</td>
 <td>${r.expense||""}</td>
-<td class="note">${r.notes||""}</td>
-<td><button class="edit" onclick="edit(${r.row})">Edit</button></td>
+<td>${r.notes||""}</td>
+
+<td>
+<div class="actions">
+<button class="edit" onclick="edit(${r.row})">Edit</button>
+<button class="delete" onclick="removeRow(${r.row})">Delete</button>
+</div>
+</td>
+
 </tr>`
 
 })
@@ -333,7 +405,7 @@ let r=data.find(x=>x.row==row)
 
 editRow=row
 
-document.getElementById("date").value=formatDate(r.date)
+document.getElementById("date").value=new Date(r.date).toISOString().split("T")[0]
 document.getElementById("diesel").value=r.diesel
 document.getElementById("expense").value=r.expense
 document.getElementById("notes").value=r.notes||""
@@ -342,6 +414,24 @@ if(machine=="kobelco")
 document.getElementById("hours").value=r.hours
 else
 document.getElementById("holes").value=r.holes
+
+}
+
+function removeRow(row){
+
+if(!confirm("Delete entry?")) return
+
+fetch(API,{
+method:"POST",
+body:JSON.stringify({
+action:"delete",
+row:row
+})
+})
+.then(r=>r.text())
+.then(()=>{
+setTimeout(loadData,400)
+})
 
 }
 
