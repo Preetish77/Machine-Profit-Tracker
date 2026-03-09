@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -19,6 +18,7 @@ color:white;
 padding:15px;
 text-align:center;
 font-size:20px;
+font-weight:bold;
 }
 
 .tabs{
@@ -81,6 +81,7 @@ padding:10px;
 margin:6px 0;
 border:1px solid #ccc;
 border-radius:6px;
+font-size:14px;
 }
 
 button{
@@ -91,12 +92,18 @@ color:white;
 border:none;
 border-radius:6px;
 margin-top:8px;
+font-size:15px;
+}
+
+.tableWrap{
+overflow-x:auto;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
 font-size:14px;
+min-width:550px;
 }
 
 th{
@@ -109,6 +116,12 @@ border-bottom:2px solid #eee;
 td{
 padding:10px;
 border-bottom:1px solid #eee;
+vertical-align:top;
+}
+
+td.note{
+max-width:180px;
+word-wrap:break-word;
 }
 
 .edit{
@@ -117,15 +130,7 @@ padding:6px 10px;
 border:none;
 color:white;
 border-radius:5px;
-margin-right:5px;
-}
-
-.delete{
-background:#dc3545;
-padding:6px 10px;
-border:none;
-color:white;
-border-radius:5px;
+font-size:13px;
 }
 
 </style>
@@ -150,7 +155,7 @@ border-radius:5px;
 
 <div id="form"></div>
 
-<div class="card">
+<div class="card tableWrap">
 <table>
 <thead>
 <tr id="thead"></tr>
@@ -170,19 +175,9 @@ let data=[]
 let editRow=null
 
 function formatDate(d){
-
 if(!d) return ""
-
 let date=new Date(d)
-
-let dayNames=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
-
-let day=dayNames[date.getDay()]
-
-let formatted=date.toISOString().split("T")[0]
-
-return formatted+" ("+day+")"
-
+return date.toISOString().split("T")[0]
 }
 
 function switchMachine(m){
@@ -192,10 +187,8 @@ machine=m
 document.getElementById("kTab").classList.remove("active")
 document.getElementById("cTab").classList.remove("active")
 
-if(m=="kobelco")
-document.getElementById("kTab").classList.add("active")
-else
-document.getElementById("cTab").classList.add("active")
+if(m=="kobelco") document.getElementById("kTab").classList.add("active")
+else document.getElementById("cTab").classList.add("active")
 
 renderForm()
 renderTable()
@@ -276,7 +269,7 @@ body:JSON.stringify(payload)
 .then(r=>r.text())
 .then(()=>{
 editRow=null
-setTimeout(loadData,800)
+setTimeout(loadData,600)
 })
 
 }
@@ -303,18 +296,14 @@ document.getElementById("thead").innerHTML="<th>Date</th><th>Hours</th><th>Diese
 else
 document.getElementById("thead").innerHTML="<th>Date</th><th>Holes</th><th>Diesel</th><th>Expense</th><th>Note</th><th></th>"
 
-let t1=0
-let t2=0
-let t3=0
+let t1=0,t2=0,t3=0
 
 rows.forEach(r=>{
 
 let date=formatDate(r.date)
 
-if(machine=="kobelco")
-t1+=Number(r.hours||0)
-else
-t1+=Number(r.holes||0)
+if(machine=="kobelco") t1+=Number(r.hours||0)
+else t1+=Number(r.holes||0)
 
 t2+=Number(r.diesel||0)
 t3+=Number(r.expense||0)
@@ -324,11 +313,8 @@ html+=`<tr>
 <td>${machine=="kobelco"?r.hours||"":r.holes||""}</td>
 <td>${r.diesel||""}</td>
 <td>${r.expense||""}</td>
-<td>${r.notes||""}</td>
-<td>
-<button class="edit" onclick="edit(${r.row})">Edit</button>
-<button class="delete" onclick="removeRow(${r.row})">Delete</button>
-</td>
+<td class="note">${r.notes||""}</td>
+<td><button class="edit" onclick="edit(${r.row})">Edit</button></td>
 </tr>`
 
 })
@@ -347,7 +333,7 @@ let r=data.find(x=>x.row==row)
 
 editRow=row
 
-document.getElementById("date").value=new Date(r.date).toISOString().split("T")[0]
+document.getElementById("date").value=formatDate(r.date)
 document.getElementById("diesel").value=r.diesel
 document.getElementById("expense").value=r.expense
 document.getElementById("notes").value=r.notes||""
@@ -356,24 +342,6 @@ if(machine=="kobelco")
 document.getElementById("hours").value=r.hours
 else
 document.getElementById("holes").value=r.holes
-
-}
-
-function removeRow(row){
-
-if(!confirm("Delete this entry?")) return
-
-fetch(API,{
-method:"POST",
-body:JSON.stringify({
-action:"delete",
-row:row
-})
-})
-.then(r=>r.text())
-.then(()=>{
-setTimeout(loadData,500)
-})
 
 }
 
