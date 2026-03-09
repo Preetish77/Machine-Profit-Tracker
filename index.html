@@ -1,10 +1,7 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
 <title>Machine Tracker</title>
 
 <style>
@@ -15,105 +12,42 @@ margin:0;
 background:#f4f6f9;
 }
 
-.header{
-background:#1e88e5;
+header{
+background:#111;
 color:white;
-padding:18px;
+padding:15px;
 text-align:center;
-font-size:22px;
-font-weight:bold;
+font-size:20px;
 }
 
 .tabs{
 display:flex;
-background:#e0e0e0;
 }
 
 .tabs button{
 flex:1;
 padding:14px;
 border:none;
-background:#e0e0e0;
+background:#ddd;
 font-size:16px;
-font-weight:bold;
-cursor:pointer;
 }
 
 .tabs button.active{
-background:white;
-border-bottom:3px solid #1e88e5;
+background:#111;
+color:white;
 }
 
 .container{
-max-width:900px;
-margin:auto;
 padding:15px;
 }
 
-.card{
-background:white;
-border-radius:10px;
-padding:15px;
-margin-bottom:15px;
-box-shadow:0 2px 8px rgba(0,0,0,0.08);
-}
-
-input{
-width:100%;
-padding:12px;
-margin:6px 0;
-border:1px solid #ccc;
-border-radius:6px;
-font-size:16px;
-}
-
-button.save{
-background:#1e88e5;
-color:white;
-padding:12px;
-border:none;
-width:100%;
-margin-top:10px;
-border-radius:6px;
-font-size:16px;
-cursor:pointer;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:20px;
-background:white;
-}
-
-th,td{
-padding:10px;
-border:1px solid #ddd;
-text-align:center;
-}
-
-th{
-background:#1e88e5;
-color:white;
-}
-
-.editBtn{
-background:#ff9800;
-color:white;
-border:none;
-padding:8px 12px;
-border-radius:6px;
-cursor:pointer;
-}
-
-.totals{
+.summary{
 display:flex;
 gap:10px;
-margin-bottom:15px;
-flex-wrap:wrap;
+margin-bottom:10px;
 }
 
-.totalBox{
+.summary div{
 flex:1;
 background:white;
 padding:10px;
@@ -122,10 +56,66 @@ text-align:center;
 box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
 
-.totalBox span{
+.summary span{
 display:block;
+font-size:12px;
+color:#777;
+}
+
+.summary b{
 font-size:18px;
-font-weight:bold;
+}
+
+.card{
+background:white;
+padding:12px;
+border-radius:8px;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+margin-bottom:12px;
+}
+
+input{
+width:100%;
+padding:10px;
+margin:6px 0;
+border:1px solid #ccc;
+border-radius:6px;
+}
+
+button{
+width:100%;
+padding:12px;
+background:#111;
+color:white;
+border:none;
+border-radius:6px;
+margin-top:8px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+font-size:14px;
+}
+
+th{
+text-align:left;
+background:#fafafa;
+padding:10px;
+border-bottom:2px solid #eee;
+}
+
+td{
+padding:10px;
+border-bottom:1px solid #eee;
+}
+
+.edit{
+background:#007bff;
+padding:6px 10px;
+border:none;
+color:white;
+border-radius:5px;
 }
 
 </style>
@@ -133,289 +123,215 @@ font-weight:bold;
 
 <body>
 
-<div class="header">Machine Tracker</div>
+<header>Machine Tracker</header>
 
 <div class="tabs">
-<button class="active" onclick="showTab('kobelco')">Kobelco</button>
-<button onclick="showTab('compressor')">Compressor</button>
+<button id="kTab" class="active" onclick="switchMachine('kobelco')">Kobelco</button>
+<button id="cTab" onclick="switchMachine('compressor')">Compressor</button>
 </div>
 
 <div class="container">
 
-<div class="totals">
-<div class="totalBox"><span id="totalLabel">Total Hours</span><span id="totalValue">0</span></div>
-<div class="totalBox">Total Diesel<span id="totalDiesel">0</span></div>
+<div class="summary">
+<div><span id="l1">Hours</span><b id="s1">0</b></div>
+<div><span id="l2">Diesel</span><b id="s2">0</b></div>
+<div><span id="l3">Expense</span><b id="s3">0</b></div>
 </div>
 
-<!-- KOBELCO -->
-
-<div id="kobelcoTab">
+<div id="form"></div>
 
 <div class="card">
-
-<h3>Kobelco Excavator</h3>
-
-<input type="date" id="exDate">
-<input type="number" id="exHours" placeholder="Hours">
-<input type="number" id="exDiesel" placeholder="Diesel">
-<input type="number" id="exExpense" placeholder="Expense">
-<input type="text" id="exNotes" placeholder="Notes">
-
-<button class="save" onclick="saveKobelco()">Save Entry</button>
-
-</div>
-
-<table id="kobelcoTable">
-
+<table>
 <thead>
-<tr>
-<th>Date</th>
-<th>Hours</th>
-<th>Diesel</th>
-<th>Expense</th>
-<th>Notes</th>
-<th>Edit</th>
-</tr>
+<tr id="thead"></tr>
 </thead>
-
-<tbody></tbody>
-
+<tbody id="tbody"></tbody>
 </table>
-
-</div>
-
-<!-- COMPRESSOR -->
-
-<div id="compressorTab" style="display:none">
-
-<div class="card">
-
-<h3>Compressor Drilling</h3>
-
-<input type="date" id="coDate">
-<input type="number" id="coHoles" placeholder="Holes">
-<input type="number" id="coDiesel" placeholder="Diesel">
-<input type="number" id="coExpense" placeholder="Expense">
-<input type="text" id="coNotes" placeholder="Notes">
-
-<button class="save" onclick="saveCompressor()">Save Entry</button>
-
-</div>
-
-<table id="compressorTable">
-
-<thead>
-<tr>
-<th>Date</th>
-<th>Holes</th>
-<th>Feet</th>
-<th>Diesel</th>
-<th>Expense</th>
-<th>Notes</th>
-<th>Edit</th>
-</tr>
-</thead>
-
-<tbody></tbody>
-
-</table>
-
 </div>
 
 </div>
 
 <script>
 
-const API="https://script.google.com/macros/s/AKfycbwESBFCxpUXAMWoyeuhW7zUJMPJ1q-wt3uoiXr56Notxxo4dSrfxpLRAOFKSjBwGoz3/exec"
+const API="https://script.google.com/macros/s/AKfycbzipgS_jFRAlTHXNPhQxI8_keZy4y7QzeBgTzrRoPU43FimHoFsTLs1HW7t9BY0bzgE/exec"
 
-const FEET_PER_HOLE=6
-
+let machine="kobelco"
+let data=[]
 let editRow=null
 
-let kobelcoHoursTotal=0
-let kobelcoDieselTotal=0
-
-let compressorHolesTotal=0
-let compressorDieselTotal=0
-
-function showTab(tab){
-
-document.getElementById("kobelcoTab").style.display="none"
-document.getElementById("compressorTab").style.display="none"
-
-document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"))
-
-if(tab==="kobelco"){
-document.getElementById("kobelcoTab").style.display="block"
-document.querySelectorAll(".tabs button")[0].classList.add("active")
-
-document.getElementById("totalLabel").innerText="Total Hours"
-document.getElementById("totalValue").innerText=kobelcoHoursTotal
-document.getElementById("totalDiesel").innerText=kobelcoDieselTotal
+function formatDate(d){
+if(!d) return ""
+let date=new Date(d)
+return date.toISOString().split("T")[0]
 }
 
-if(tab==="compressor"){
-document.getElementById("compressorTab").style.display="block"
-document.querySelectorAll(".tabs button")[1].classList.add("active")
+function switchMachine(m){
 
-document.getElementById("totalLabel").innerText="Total Holes"
-document.getElementById("totalValue").innerText=compressorHolesTotal
-document.getElementById("totalDiesel").innerText=compressorDieselTotal
+machine=m
+
+document.getElementById("kTab").classList.remove("active")
+document.getElementById("cTab").classList.remove("active")
+
+if(m=="kobelco") document.getElementById("kTab").classList.add("active")
+else document.getElementById("cTab").classList.add("active")
+
+renderForm()
+renderTable()
+
 }
+
+function renderForm(){
+
+let html=""
+
+if(machine=="kobelco"){
+
+document.getElementById("l1").innerText="Hours"
+document.getElementById("l2").innerText="Diesel"
+document.getElementById("l3").innerText="Expense"
+
+html=`
+<div class="card">
+
+<input type="date" id="date">
+<input type="number" id="hours" placeholder="Hours">
+<input type="number" id="diesel" placeholder="Diesel">
+<input type="number" id="expense" placeholder="Expense">
+<input type="text" id="notes" placeholder="Expense note (repair / spare part etc)">
+
+<button onclick="save()">Add Entry</button>
+
+</div>
+`
+
+}else{
+
+document.getElementById("l1").innerText="Holes"
+document.getElementById("l2").innerText="Diesel"
+document.getElementById("l3").innerText="Expense"
+
+html=`
+<div class="card">
+
+<input type="date" id="date">
+<input type="number" id="holes" placeholder="Holes">
+<input type="number" id="diesel" placeholder="Diesel">
+<input type="number" id="expense" placeholder="Expense">
+<input type="text" id="notes" placeholder="Expense note (repair / spare part etc)">
+
+<button onclick="save()">Add Entry</button>
+
+</div>
+`
+
+}
+
+document.getElementById("form").innerHTML=html
+
+}
+
+function save(){
+
+let payload={
+machine:machine,
+date:document.getElementById("date").value,
+diesel:document.getElementById("diesel").value,
+expense:document.getElementById("expense").value,
+notes:document.getElementById("notes").value
+}
+
+if(machine=="kobelco")
+payload.hours=document.getElementById("hours").value
+else
+payload.holes=document.getElementById("holes").value
+
+if(editRow) payload.row=editRow
+
+fetch(API,{
+method:"POST",
+body:JSON.stringify(payload)
+})
+.then(r=>r.text())
+.then(()=>{
+editRow=null
+setTimeout(loadData,800)
+})
 
 }
 
 function loadData(){
 
 fetch(API)
-.then(r=>r.json())
-.then(data=>{
-
-kobelcoHoursTotal=0
-kobelcoDieselTotal=0
-compressorHolesTotal=0
-compressorDieselTotal=0
-
-document.querySelector("#kobelcoTable tbody").innerHTML=""
-document.querySelector("#compressorTable tbody").innerHTML=""
-
-data.forEach((row,i)=>{
-
-if(i===0)return
-
-let machine=row[0]
-let date=row[1]
-let hours=row[2]||0
-let holes=row[3]||0
-let feet=row[4]||0
-let diesel=row[5]||0
-let expense=row[6]||""
-let notes=row[7]||""
-
-if(machine==="kobelco"){
-
-kobelcoHoursTotal+=Number(hours)
-kobelcoDieselTotal+=Number(diesel)
-
-let table=document.querySelector("#kobelcoTable tbody")
-let r=table.insertRow()
-
-r.insertCell(0).innerText=date
-r.insertCell(1).innerText=hours
-r.insertCell(2).innerText=diesel
-r.insertCell(3).innerText=expense
-r.insertCell(4).innerText=notes
-
-let edit=r.insertCell(5)
-
-edit.innerHTML=`<button class="editBtn" onclick="editK(${i+1},'${date}','${hours}','${diesel}','${expense}','${notes}')">Edit</button>`
-
-}
-
-if(machine==="compressor"){
-
-compressorHolesTotal+=Number(holes)
-compressorDieselTotal+=Number(diesel)
-
-let table=document.querySelector("#compressorTable tbody")
-let r=table.insertRow()
-
-r.insertCell(0).innerText=date
-r.insertCell(1).innerText=holes
-r.insertCell(2).innerText=feet
-r.insertCell(3).innerText=diesel
-r.insertCell(4).innerText=expense
-r.insertCell(5).innerText=notes
-
-let edit=r.insertCell(6)
-
-edit.innerHTML=`<button class="editBtn" onclick="editC(${i+1},'${date}','${holes}','${diesel}','${expense}','${notes}')">Edit</button>`
-
-}
-
-})
-
-showTab("kobelco")
-
+.then(res=>res.json())
+.then(json=>{
+data=json
+renderTable()
 })
 
 }
 
-function send(data){
+function renderTable(){
 
-fetch(API,{
-method:"POST",
-headers:{ "Content-Type":"application/json"},
-body:JSON.stringify(data)
+let rows=data.filter(x=>x.machine==machine)
+
+let html=""
+
+if(machine=="kobelco")
+document.getElementById("thead").innerHTML="<th>Date</th><th>Hours</th><th>Diesel</th><th>Expense</th><th>Note</th><th></th>"
+else
+document.getElementById("thead").innerHTML="<th>Date</th><th>Holes</th><th>Diesel</th><th>Expense</th><th>Note</th><th></th>"
+
+let t1=0,t2=0,t3=0
+
+rows.forEach(r=>{
+
+let date=formatDate(r.date)
+
+if(machine=="kobelco") t1+=Number(r.hours||0)
+else t1+=Number(r.holes||0)
+
+t2+=Number(r.diesel||0)
+t3+=Number(r.expense||0)
+
+html+=`<tr>
+<td>${date}</td>
+<td>${machine=="kobelco"?r.hours||"":r.holes||""}</td>
+<td>${r.diesel||""}</td>
+<td>${r.expense||""}</td>
+<td>${r.notes||""}</td>
+<td><button class="edit" onclick="edit(${r.row})">Edit</button></td>
+</tr>`
+
 })
-.then(()=>location.reload())
+
+document.getElementById("tbody").innerHTML=html
+
+document.getElementById("s1").innerText=t1
+document.getElementById("s2").innerText=t2
+document.getElementById("s3").innerText=t3
 
 }
 
-function saveKobelco(){
+function edit(row){
 
-send({
-row:editRow,
-machine:"kobelco",
-date:exDate.value,
-hours:exHours.value,
-holes:"",
-feet:"",
-diesel:exDiesel.value,
-expense:exExpense.value,
-notes:exNotes.value
-})
-
-editRow=null
-
-}
-
-function saveCompressor(){
-
-let holes=coHoles.value||0
-let feet=holes*FEET_PER_HOLE
-
-send({
-row:editRow,
-machine:"compressor",
-date:coDate.value,
-hours:"",
-holes:holes,
-feet:feet,
-diesel:coDiesel.value,
-expense:coExpense.value,
-notes:coNotes.value
-})
-
-editRow=null
-
-}
-
-function editK(row,date,hours,diesel,expense,notes){
+let r=data.find(x=>x.row==row)
 
 editRow=row
 
-exDate.value=date
-exHours.value=hours
-exDiesel.value=diesel
-exExpense.value=expense
-exNotes.value=notes
+document.getElementById("date").value=formatDate(r.date)
+document.getElementById("diesel").value=r.diesel
+document.getElementById("expense").value=r.expense
+document.getElementById("notes").value=r.notes||""
+
+if(machine=="kobelco")
+document.getElementById("hours").value=r.hours
+else
+document.getElementById("holes").value=r.holes
 
 }
 
-function editC(row,date,holes,diesel,expense,notes){
-
-editRow=row
-
-coDate.value=date
-coHoles.value=holes
-coDiesel.value=diesel
-coExpense.value=expense
-coNotes.value=notes
-
-}
-
-window.onload=loadData
+renderForm()
+loadData()
 
 </script>
 
