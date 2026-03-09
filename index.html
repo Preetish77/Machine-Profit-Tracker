@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -116,6 +117,15 @@ padding:6px 10px;
 border:none;
 color:white;
 border-radius:5px;
+margin-right:5px;
+}
+
+.delete{
+background:#dc3545;
+padding:6px 10px;
+border:none;
+color:white;
+border-radius:5px;
 }
 
 </style>
@@ -160,9 +170,19 @@ let data=[]
 let editRow=null
 
 function formatDate(d){
+
 if(!d) return ""
+
 let date=new Date(d)
-return date.toISOString().split("T")[0]
+
+let dayNames=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
+
+let day=dayNames[date.getDay()]
+
+let formatted=date.toISOString().split("T")[0]
+
+return formatted+" ("+day+")"
+
 }
 
 function switchMachine(m){
@@ -172,8 +192,10 @@ machine=m
 document.getElementById("kTab").classList.remove("active")
 document.getElementById("cTab").classList.remove("active")
 
-if(m=="kobelco") document.getElementById("kTab").classList.add("active")
-else document.getElementById("cTab").classList.add("active")
+if(m=="kobelco")
+document.getElementById("kTab").classList.add("active")
+else
+document.getElementById("cTab").classList.add("active")
 
 renderForm()
 renderTable()
@@ -281,14 +303,18 @@ document.getElementById("thead").innerHTML="<th>Date</th><th>Hours</th><th>Diese
 else
 document.getElementById("thead").innerHTML="<th>Date</th><th>Holes</th><th>Diesel</th><th>Expense</th><th>Note</th><th></th>"
 
-let t1=0,t2=0,t3=0
+let t1=0
+let t2=0
+let t3=0
 
 rows.forEach(r=>{
 
 let date=formatDate(r.date)
 
-if(machine=="kobelco") t1+=Number(r.hours||0)
-else t1+=Number(r.holes||0)
+if(machine=="kobelco")
+t1+=Number(r.hours||0)
+else
+t1+=Number(r.holes||0)
 
 t2+=Number(r.diesel||0)
 t3+=Number(r.expense||0)
@@ -299,7 +325,10 @@ html+=`<tr>
 <td>${r.diesel||""}</td>
 <td>${r.expense||""}</td>
 <td>${r.notes||""}</td>
-<td><button class="edit" onclick="edit(${r.row})">Edit</button></td>
+<td>
+<button class="edit" onclick="edit(${r.row})">Edit</button>
+<button class="delete" onclick="removeRow(${r.row})">Delete</button>
+</td>
 </tr>`
 
 })
@@ -318,7 +347,7 @@ let r=data.find(x=>x.row==row)
 
 editRow=row
 
-document.getElementById("date").value=formatDate(r.date)
+document.getElementById("date").value=new Date(r.date).toISOString().split("T")[0]
 document.getElementById("diesel").value=r.diesel
 document.getElementById("expense").value=r.expense
 document.getElementById("notes").value=r.notes||""
@@ -327,6 +356,24 @@ if(machine=="kobelco")
 document.getElementById("hours").value=r.hours
 else
 document.getElementById("holes").value=r.holes
+
+}
+
+function removeRow(row){
+
+if(!confirm("Delete this entry?")) return
+
+fetch(API,{
+method:"POST",
+body:JSON.stringify({
+action:"delete",
+row:row
+})
+})
+.then(r=>r.text())
+.then(()=>{
+setTimeout(loadData,500)
+})
 
 }
 
