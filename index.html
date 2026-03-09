@@ -2,7 +2,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta name="viewport" content="width=device-width,initial-scale=1">
+
 <title>Machine Tracker</title>
 
 <style>
@@ -16,7 +18,7 @@ background:#f4f6f9;
 .header{
 background:#1e88e5;
 color:white;
-padding:16px;
+padding:18px;
 text-align:center;
 font-size:22px;
 font-weight:bold;
@@ -34,6 +36,7 @@ border:none;
 background:#e0e0e0;
 font-size:16px;
 font-weight:bold;
+cursor:pointer;
 }
 
 .tabs button.active{
@@ -42,9 +45,17 @@ border-bottom:3px solid #1e88e5;
 }
 
 .container{
-padding:15px;
 max-width:900px;
 margin:auto;
+padding:15px;
+}
+
+.card{
+background:white;
+border-radius:10px;
+padding:15px;
+margin-bottom:15px;
+box-shadow:0 2px 8px rgba(0,0,0,0.08);
 }
 
 input{
@@ -65,6 +76,7 @@ width:100%;
 margin-top:10px;
 border-radius:6px;
 font-size:16px;
+cursor:pointer;
 }
 
 table{
@@ -89,36 +101,31 @@ color:white;
 background:#ff9800;
 color:white;
 border:none;
-padding:6px 10px;
-border-radius:4px;
+padding:8px 12px;
+border-radius:6px;
+cursor:pointer;
 }
 
-/* MOBILE */
-
-@media(max-width:600px){
-
-table,thead,tbody,tr,td,th{
-display:block;
+.totals{
+display:flex;
+gap:10px;
+margin-bottom:15px;
+flex-wrap:wrap;
 }
 
-thead{
-display:none;
-}
-
-tr{
+.totalBox{
+flex:1;
 background:white;
-margin-bottom:12px;
-border-radius:8px;
-box-shadow:0 2px 6px rgba(0,0,0,0.1);
 padding:10px;
+border-radius:8px;
+text-align:center;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
 
-td{
-border:none;
-text-align:left;
-padding:6px 0;
-}
-
+.totalBox span{
+display:block;
+font-size:18px;
+font-weight:bold;
 }
 
 </style>
@@ -135,7 +142,16 @@ padding:6px 0;
 
 <div class="container">
 
+<div class="totals">
+<div class="totalBox"><span id="totalLabel">Total Hours</span><span id="totalValue">0</span></div>
+<div class="totalBox">Total Diesel<span id="totalDiesel">0</span></div>
+</div>
+
+<!-- KOBELCO -->
+
 <div id="kobelcoTab">
+
+<div class="card">
 
 <h3>Kobelco Excavator</h3>
 
@@ -145,10 +161,13 @@ padding:6px 0;
 <input type="number" id="exExpense" placeholder="Expense">
 <input type="text" id="exNotes" placeholder="Notes">
 
-<button class="save" onclick="saveKobelco()">Save</button>
+<button class="save" onclick="saveKobelco()">Save Entry</button>
+
+</div>
 
 <table id="kobelcoTable">
 
+<thead>
 <tr>
 <th>Date</th>
 <th>Hours</th>
@@ -157,12 +176,19 @@ padding:6px 0;
 <th>Notes</th>
 <th>Edit</th>
 </tr>
+</thead>
+
+<tbody></tbody>
 
 </table>
 
 </div>
 
+<!-- COMPRESSOR -->
+
 <div id="compressorTab" style="display:none">
+
+<div class="card">
 
 <h3>Compressor Drilling</h3>
 
@@ -172,10 +198,13 @@ padding:6px 0;
 <input type="number" id="coExpense" placeholder="Expense">
 <input type="text" id="coNotes" placeholder="Notes">
 
-<button class="save" onclick="saveCompressor()">Save</button>
+<button class="save" onclick="saveCompressor()">Save Entry</button>
+
+</div>
 
 <table id="compressorTable">
 
+<thead>
 <tr>
 <th>Date</th>
 <th>Holes</th>
@@ -185,6 +214,9 @@ padding:6px 0;
 <th>Notes</th>
 <th>Edit</th>
 </tr>
+</thead>
+
+<tbody></tbody>
 
 </table>
 
@@ -195,8 +227,16 @@ padding:6px 0;
 <script>
 
 const API="https://script.google.com/macros/s/AKfycbwESBFCxpUXAMWoyeuhW7zUJMPJ1q-wt3uoiXr56Notxxo4dSrfxpLRAOFKSjBwGoz3/exec"
+
 const FEET_PER_HOLE=6
+
 let editRow=null
+
+let kobelcoHoursTotal=0
+let kobelcoDieselTotal=0
+
+let compressorHolesTotal=0
+let compressorDieselTotal=0
 
 function showTab(tab){
 
@@ -208,11 +248,19 @@ document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"
 if(tab==="kobelco"){
 document.getElementById("kobelcoTab").style.display="block"
 document.querySelectorAll(".tabs button")[0].classList.add("active")
+
+document.getElementById("totalLabel").innerText="Total Hours"
+document.getElementById("totalValue").innerText=kobelcoHoursTotal
+document.getElementById("totalDiesel").innerText=kobelcoDieselTotal
 }
 
 if(tab==="compressor"){
 document.getElementById("compressorTab").style.display="block"
 document.querySelectorAll(".tabs button")[1].classList.add("active")
+
+document.getElementById("totalLabel").innerText="Total Holes"
+document.getElementById("totalValue").innerText=compressorHolesTotal
+document.getElementById("totalDiesel").innerText=compressorDieselTotal
 }
 
 }
@@ -223,23 +271,34 @@ fetch(API)
 .then(r=>r.json())
 .then(data=>{
 
+kobelcoHoursTotal=0
+kobelcoDieselTotal=0
+compressorHolesTotal=0
+compressorDieselTotal=0
+
+document.querySelector("#kobelcoTable tbody").innerHTML=""
+document.querySelector("#compressorTable tbody").innerHTML=""
+
 data.forEach((row,i)=>{
 
 if(i===0)return
 
 let machine=row[0]
 let date=row[1]
-let hours=row[2]||""
-let holes=row[3]||""
-let feet=row[4]||""
-let diesel=row[5]||""
+let hours=row[2]||0
+let holes=row[3]||0
+let feet=row[4]||0
+let diesel=row[5]||0
 let expense=row[6]||""
 let notes=row[7]||""
 
 if(machine==="kobelco"){
 
-let t=document.getElementById("kobelcoTable")
-let r=t.insertRow()
+kobelcoHoursTotal+=Number(hours)
+kobelcoDieselTotal+=Number(diesel)
+
+let table=document.querySelector("#kobelcoTable tbody")
+let r=table.insertRow()
 
 r.insertCell(0).innerText=date
 r.insertCell(1).innerText=hours
@@ -255,8 +314,11 @@ edit.innerHTML=`<button class="editBtn" onclick="editK(${i+1},'${date}','${hours
 
 if(machine==="compressor"){
 
-let t=document.getElementById("compressorTable")
-let r=t.insertRow()
+compressorHolesTotal+=Number(holes)
+compressorDieselTotal+=Number(diesel)
+
+let table=document.querySelector("#compressorTable tbody")
+let r=table.insertRow()
 
 r.insertCell(0).innerText=date
 r.insertCell(1).innerText=holes
@@ -273,6 +335,8 @@ edit.innerHTML=`<button class="editBtn" onclick="editC(${i+1},'${date}','${holes
 
 })
 
+showTab("kobelco")
+
 })
 
 }
@@ -281,8 +345,10 @@ function send(data){
 
 fetch(API,{
 method:"POST",
+headers:{ "Content-Type":"application/json"},
 body:JSON.stringify(data)
-}).then(()=>location.reload())
+})
+.then(()=>location.reload())
 
 }
 
@@ -328,7 +394,6 @@ editRow=null
 function editK(row,date,hours,diesel,expense,notes){
 
 editRow=row
-showTab("kobelco")
 
 exDate.value=date
 exHours.value=hours
@@ -341,7 +406,6 @@ exNotes.value=notes
 function editC(row,date,holes,diesel,expense,notes){
 
 editRow=row
-showTab("compressor")
 
 coDate.value=date
 coHoles.value=holes
